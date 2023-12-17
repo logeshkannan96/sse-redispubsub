@@ -12,40 +12,37 @@ app.use(bodyParser.json());
 app.use(bodyParser.urlencoded({ extended: false }));
 
 function eventsHandler(request, response) {
+	const { channel } = request.query;
+	channels.push({
+		channel,
+		response,
+	});
+
 	const headers = {
 		"Content-Type": "text/event-stream",
 		Connection: "keep-alive",
 		"Cache-Control": "no-cache",
 	};
-	
+
 	response.writeHead(200, headers);
 
-	const clientId = Date.now();
+	sub.subscribe(channel, (err, count) => {
+		console.log(`Subscribed to ${channel} channel.`);
+		if (err) {
+			throw new Error(err);
+		}
+	});
 
-	const newClient = {
-		id: clientId,
-		response,
-	};
-
-	clients.push(newClient);
-	if (!subscriptionInitialized) {
-
-		sub.subscribe("liveupdates", (err, count) => {
-			if (err) {
-				throw new Error(err);
-			}
-		});
-
-		sub.on("message", (channel, message) => {
-			clients.forEach((client) => client.response.write(`data: ${message}\n\n`));
-		});
-
-		subscriptionInitialized = true;
-	}
+	sub.on("message", (subChannel, message) => {
+		if (subChannel === channel) {
+			console.log(`${subChannel} : ${message}`);
+			response.write(`data: ${message}\n\n`);
+		}
+	});
 
 	request.on("close", () => {
-		console.log(`${clientId} Connection closed`);
-		clients = clients.filter((client) => client.id !== clientId);
+		console.log(`${channel} Connection closed`);
+		sub.unsubscribe(channel);
 	});
 }
 
@@ -53,20 +50,20 @@ app.get("/notifications", eventsHandler);
 
 async function pushMessage(request, respsonse) {
 	const newMessage = request.body;
-	publisher("liveupdates", newMessage);
+	const { channel } = request.query;
+	publisher(channel, newMessage);
 	respsonse.json(newMessage);
 }
 
 app.post("/pushMessage", pushMessage);
 
 app.get("/status", (request, response) =>
-	response.json({ clients: clients.length })
+	response.json({ channels: channels.length })
 );
 
 const PORT = 3001;
 
-let clients = [];
-let subscriptionInitialized = false;
+let channels = [];
 
 app.listen(PORT, () => {
 	console.log(`Messages Events service listening at http://localhost:${PORT}`);

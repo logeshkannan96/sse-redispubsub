@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import './App.css';
+import { clientIdBase64 } from './utils';
 
 function App() {
   const [messages, setMessages] = useState([]);
@@ -7,7 +8,14 @@ function App() {
 
   useEffect(() => {
     if (!listening) {
-      const events = new EventSource('http://localhost:3001/notifications'); //listening url
+     
+      let clientId = localStorage.getItem('clientId')
+      if (!clientId) {
+        clientId = clientIdBase64();
+        localStorage.setItem('clientId', clientId);
+      }
+
+      const events = new EventSource(`http://localhost:3001/notifications/?channel=${clientId}`);
 
       events.onmessage = (event) => {
         console.log(event);
