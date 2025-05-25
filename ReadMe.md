@@ -10,3 +10,7 @@ Many real time services using this approach if it needs to push messages based o
 - [MDN - Server Sent Events](https://developer.mozilla.org/en-US/docs/Web/API/Server-sent_events)
 - [Twitter like application using Server Sent Events](https://hacks.mozilla.org/2011/06/a-wall-powered-by-eventsource-and-server-sent-events/)
 - [REAL-TIME WEB APPS WITH SERVER-SENT EVENTS (PT 1)](https://blog.bayn.es/real-time-web-applications-with-server-sent-events-pt-1)
+
+Note: A similar implementation using Server-Sent Events (SSE) with Redis Pub/Sub is available in the following GitHub repository:
+👉 [logeshkannan96/distributed-websockets](https://github.com/logeshkannan96/distributed-websockets)
+Feel free to check it out for reference or inspiration.
